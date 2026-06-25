@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pg-designer-pwa-v3-20260625-new-logo';
+const CACHE_NAME = 'pg-designer-pwa-v4-20260625-erase-ocr-image-db';
 const ASSETS = [
   './',
   './index.html',

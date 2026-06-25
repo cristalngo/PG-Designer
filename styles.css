@@ -61,7 +61,7 @@ h2 { margin: 0; font-size: 18px; }
   overflow: hidden;
 }
 .card-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
-.card-title span, .help p, .import-box p { color: var(--muted); font-size: 12px; font-weight: 750; }
+.card-title span, .import-box p { color: var(--muted); font-size: 12px; font-weight: 750; }
 .image-stage {
   position: relative;
   width: 100%;
