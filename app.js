@@ -3,6 +3,7 @@ const state = {
   orders: [],
   thuChiRows: [],
   image: null,
+  photoFingerprint: null,
   selectedProduct: null,
   selectedOrder: null,
   suggestions: [],
@@ -158,19 +159,24 @@ function wrapLines(text, maxWidth, font) {
   return lines;
 }
 
-function selectedSuggestionText() {
-  return state.suggestions.filter(s => s.checked).map(s => s.text).join('\n');
+function selectedSuggestions(zone) {
+  return state.suggestions.filter(s => s.checked && (s.zone || 'top') === zone).map(s => s.text);
 }
 
 function renderAnnotated() {
   drawBase();
-  const text = selectedSuggestionText();
-  if (!text) return;
+  drawLabel(selectedSuggestions('top'), state.placement);
+  drawLabel(selectedSuggestions('bottom'), 'bottom');
+}
 
+function drawLabel(sourceLines, placement) {
+  const text = sourceLines.filter(Boolean).join('\n');
+  if (!text) return;
   const canvas = el.previewCanvas;
-  const fontSize = Math.max(34, Math.round(canvas.width * 0.052));
+  const isBottom = placement === 'bottom';
+  const fontSize = Math.max(isBottom ? 38 : 34, Math.round(canvas.width * (isBottom ? 0.056 : 0.052)));
   const font = `900 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-  const maxWidth = canvas.width * 0.78;
+  const maxWidth = canvas.width * (isBottom ? 0.74 : 0.78);
   const lines = wrapLines(text, maxWidth, font);
   const lineHeight = fontSize * 1.18;
   const padX = canvas.width * 0.034;
@@ -180,8 +186,8 @@ function renderAnnotated() {
   const boxH = lines.length * lineHeight + padY * 2;
   const x = (canvas.width - boxW) / 2;
   let y = canvas.height * 0.09;
-  if (state.placement === 'center') y = (canvas.height - boxH) / 2;
-  if (state.placement === 'bottom') y = canvas.height - boxH - canvas.height * 0.09;
+  if (placement === 'center') y = (canvas.height - boxH) / 2;
+  if (placement === 'bottom') y = canvas.height - boxH - canvas.height * 0.07;
 
   roundedRect(x, y, boxW, boxH, canvas.width * 0.02);
   ctx.fillStyle = 'rgba(229, 27, 45, .95)';
@@ -205,15 +211,26 @@ function roundedRect(x, y, width, height, radius) {
   ctx.closePath();
 }
 
-function addSuggestion(text, source, checked = true) {
-  const clean = String(text || '').trim();
+function addSuggestion(text, source, checked = true, zone = 'top') {
+  const clean = normalizeDesignText(text);
   if (!clean) return;
   if (state.suggestions.some(item => norm(item.text) === norm(clean))) return;
-  state.suggestions.push({ id: crypto.randomUUID(), text: clean, source, checked });
+  state.suggestions.push({ id: crypto.randomUUID(), text: clean, source, checked, zone });
+}
+
+function normalizeDesignText(text) {
+  let clean = String(text || '').trim().replace(/\s+/g, ' ');
+  clean = clean.replace(/\b(tay|size)\s*(\d+(?:[,.]\d+)?)(?:\s*mm)?\b/ig, (_, label, value) => {
+    return `${label[0].toUpperCase()}${label.slice(1).toLowerCase()} ${value.replace(',', '.')}mm`;
+  });
+  clean = clean.replace(/\b(\d+(?:[,.]\d+)?)\s*mm\b/ig, (_, value) => `${value.replace(',', '.')}mm`);
+  clean = clean.replace(/\b(10|14|18)\s*k\b/ig, '$1K');
+  clean = clean.replace(/\bkhoảng\s+(?=\d)/ig, '');
+  return clean;
 }
 
 function parseRingSize(text) {
-  const match = String(text || '').match(/(?:tay|size)\s*(\d+(?:[,.]\d+)?)/i);
+  const match = String(text || '').match(/(?:tay|size)\s*(\d+(?:[,.]\d+)?)(?:\s*mm)?/i);
   return match ? match[1].replace(',', '.') : '';
 }
 
@@ -248,7 +265,7 @@ function rebuildSuggestions() {
   state.suggestions = [];
   addSuggestion(request, 'Yêu cầu khách');
   const ringSize = parseRingSize(request);
-  if (ringSize && !state.selectedOrder?.ringSize) addSuggestion(`Tay ${ringSize}`, 'Tự nhận từ yêu cầu');
+  if (ringSize && !state.selectedOrder?.ringSize) addSuggestion(`Tay ${ringSize}mm`, 'Tự nhận từ yêu cầu');
   const material = parseMaterial(request);
   if (material && !state.selectedProduct && !state.selectedOrder) addSuggestion(material, 'Tự nhận từ yêu cầu');
 
@@ -256,7 +273,7 @@ function rebuildSuggestions() {
   if (order) {
     addSuggestion(order.product, `Order ${order.orderId || ''}`);
     addSuggestion(order.material, 'Chất liệu từ order');
-    if (order.ringSize) addSuggestion(`Tay ${order.ringSize}`, 'Size từ order');
+    if (order.ringSize) addSuggestion(`Tay ${order.ringSize}mm`, 'Size từ order');
     addSuggestion([order.stone, order.stoneSize || order.stone_size].filter(Boolean).join(' '), 'Đá từ order');
     addSuggestion(order.notes, 'Ghi chú order');
   }
@@ -271,8 +288,7 @@ function rebuildSuggestions() {
 
   const avg = similarAverageWeight();
   if (avg && !product?.gold_weight_raw) addSuggestion(`TL vàng tham khảo ${avg}`, 'Trung bình đơn cũ');
-  addSuggestion('Thân nhẫn mảnh khoảng 1.4mm', 'Chuẩn Petite Gem');
-  addSuggestion('Làm thanh mảnh, sạch chấu, đúng tinh thần mẫu', 'Chuẩn Petite Gem');
+  addSuggestion('Thân nhẫn 1.4mm', 'Chuẩn Petite Gem', true, 'bottom');
   renderSuggestions();
 }
 
@@ -280,7 +296,7 @@ function renderSuggestions() {
   el.suggestions.innerHTML = state.suggestions.map(item => `
     <label class="suggestion">
       <input type="checkbox" data-id="${item.id}" ${item.checked ? 'checked' : ''}>
-      <span><strong>${escapeHtml(item.text)}</strong><span>${escapeHtml(item.source)}</span></span>
+      <span><strong>${escapeHtml(item.text)}</strong><span>${escapeHtml(item.source)}${item.zone === 'bottom' ? ' · nhãn dưới' : ''}</span></span>
     </label>
   `).join('');
   el.suggestions.querySelectorAll('input[type="checkbox"]').forEach(input => {
@@ -295,8 +311,8 @@ function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 }
 
-function renderResults() {
-  const query = el.searchInput.value.trim();
+function renderResults(queryOverride = '') {
+  const query = (queryOverride || el.searchInput.value).trim();
   const productRows = searchProducts(query);
   const orderRows = searchOrders(query);
   const html = [
@@ -342,12 +358,103 @@ async function loadPhoto(file) {
     img.src = url;
   });
   state.image = img;
+  state.photoFingerprint = await imageFingerprint(img);
   el.previewCanvas.width = img.naturalWidth;
   el.previewCanvas.height = img.naturalHeight;
   drawBase();
   URL.revokeObjectURL(url);
   state.lastBlob = null;
   el.shareBtn.disabled = true;
+  autoSearchFromPhoto(file);
+}
+
+async function imageFingerprint(img) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 8;
+  canvas.height = 8;
+  const imageCtx = canvas.getContext('2d', { willReadFrequently: true });
+  imageCtx.drawImage(img, 0, 0, 8, 8);
+  const data = imageCtx.getImageData(0, 0, 8, 8).data;
+  const values = [];
+  for (let i = 0; i < data.length; i += 4) {
+    values.push(Math.round((data[i] + data[i + 1] + data[i + 2]) / 3));
+  }
+  return values;
+}
+
+function fingerprintDistance(a, b) {
+  if (!a?.length || !b?.length || a.length !== b.length) return Infinity;
+  let sum = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    const diff = a[i] - b[i];
+    sum += diff * diff;
+  }
+  return Math.sqrt(sum / a.length);
+}
+
+async function loadImageForFingerprint(src) {
+  return await new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = async () => resolve(await imageFingerprint(img));
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+async function autoSearchFromPhoto(file) {
+  const imageProducts = state.products.filter(product => product.image_url || product.imageURL);
+  if (imageProducts.length && state.photoFingerprint) {
+    el.dbStatus.textContent = 'Đang tự search DB theo ảnh...';
+    const scored = [];
+    for (const product of imageProducts.slice(0, 80)) {
+      const fp = await loadImageForFingerprint(product.image_url || product.imageURL);
+      const distance = fingerprintDistance(state.photoFingerprint, fp);
+      if (Number.isFinite(distance)) scored.push({ product, index: state.products.indexOf(product), distance });
+    }
+    scored.sort((a, b) => a.distance - b.distance);
+    const best = scored[0];
+    if (best) {
+      state.selectedProduct = best.product;
+      state.selectedOrder = null;
+      el.selectedRef.hidden = false;
+      el.selectedRef.textContent = `Tự chọn theo ảnh: ${productName(best.product)} · TL ${best.product.gold_weight_raw || '-'}`;
+      el.results.innerHTML = scored.slice(0, 8).map(({ product, index }) => `
+        <button class="result" type="button" data-kind="product" data-index="${index}">
+          <span><strong>${escapeHtml(productName(product))}</strong><small>${escapeHtml([materialOf(product), product.gold_weight_raw ? `TL ${product.gold_weight_raw}` : '', stoneLine(product), product.productId].filter(Boolean).join(' · '))}</small></span>
+          <span>Ảnh</span>
+        </button>`).join('');
+      el.results.querySelectorAll('.result').forEach(button => {
+        button.addEventListener('click', () => selectReference(button.dataset.kind, Number(button.dataset.index)));
+      });
+      el.dbStatus.textContent = `Tự search ảnh: ${scored.length} kết quả`;
+      rebuildSuggestions();
+      return;
+    }
+  }
+
+  const fallbackQuery = searchQueryFromRequest() || file?.name?.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ') || '';
+  if (fallbackQuery) {
+    el.searchInput.value = fallbackQuery;
+    renderResults(fallbackQuery);
+    const firstProduct = searchProducts(fallbackQuery)[0];
+    if (firstProduct) {
+      state.selectedProduct = firstProduct.product;
+      el.selectedRef.hidden = false;
+      el.selectedRef.textContent = `Tự chọn theo yêu cầu: ${productName(firstProduct.product)} · TL ${firstProduct.product.gold_weight_raw || '-'}`;
+    }
+    rebuildSuggestions();
+    el.dbStatus.textContent = imageProducts.length ? 'Tự search theo yêu cầu' : 'DB chưa có ảnh, tự search theo yêu cầu';
+  }
+}
+
+function searchQueryFromRequest() {
+  return normalizeDesignText(el.requestInput.value)
+    .replace(/\bTay\s*\d+(?:\.\d+)?mm\b/ig, '')
+    .replace(/\b(vàng vàng|vàng trắng|vàng hồng|vàng|bac|bạc)\s*(10K|14K|18K)?\b/ig, '')
+    .replace(/\b(10K|14K|18K)\b/ig, '')
+    .replace(/[,.]/g, ' ')
+    .trim();
 }
 
 async function canvasBlob() {
@@ -384,6 +491,7 @@ function clearAll() {
   el.selectedRef.hidden = true;
   state.selectedProduct = null;
   state.selectedOrder = null;
+  state.photoFingerprint = null;
   state.suggestions = [];
   renderSuggestions();
   drawBase();
@@ -410,11 +518,16 @@ el.searchInput.addEventListener('input', () => {
 });
 el.requestInput.addEventListener('input', () => {
   clearTimeout(el.requestInput._timer);
-  el.requestInput._timer = setTimeout(rebuildSuggestions, 160);
+  el.requestInput._timer = setTimeout(() => {
+    const query = searchQueryFromRequest();
+    if (query) renderResults(query);
+    rebuildSuggestions();
+  }, 160);
 });
 el.rebuildBtn.addEventListener('click', rebuildSuggestions);
 el.addCustomBtn.addEventListener('click', () => {
-  addSuggestion(el.customInput.value, 'Thêm tay');
+  const zone = norm(el.customInput.value).includes('than nhan') ? 'bottom' : 'top';
+  addSuggestion(el.customInput.value, 'Thêm tay', true, zone);
   el.customInput.value = '';
   renderSuggestions();
 });

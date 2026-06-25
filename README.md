@@ -14,6 +14,7 @@ Upload toàn bộ thư mục này lên GitHub Pages để chạy trên iPhone.
 - Chọn ảnh sản phẩm.
 - Nhập yêu cầu khách.
 - Search Product DB hoặc import sync JSON từ PG Manager.
+- App tự chuẩn hóa size như `Tay 17.5mm`, tự thêm `Thân nhẫn 1.4mm`, và tự search DB theo yêu cầu/ảnh nếu DB có ảnh.
 - Tick các dòng muốn gửi xưởng.
 - Bấm Tạo ảnh.
 - Bấm Share để gửi ảnh PNG.

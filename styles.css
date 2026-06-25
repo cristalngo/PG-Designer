@@ -81,6 +81,7 @@ canvas { display: block; width: 100%; height: 100%; }
   gap: 5px;
   color: var(--muted);
 }
+.empty-state[hidden] { display: none; }
 .empty-state strong { color: var(--ink); font-size: 18px; }
 .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 9px; }
 .file-button {
@@ -149,9 +150,6 @@ canvas { display: block; width: 100%; height: 100%; }
 .suggestion strong { display: block; line-height: 1.22; }
 .suggestion span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
 .custom-row { display: grid; grid-template-columns: 1fr 48px; gap: 8px; margin-top: 9px; }
-.help h2 { margin-bottom: 5px; }
-.help p { margin: 0; line-height: 1.35; }
-
 @media (max-width: 460px) {
   .app { padding-left: 8px; padding-right: 8px; }
   h1 { font-size: 25px; }
