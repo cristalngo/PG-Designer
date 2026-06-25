@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pg-designer-pwa-v2-20260625-overwrite-labels';
+const CACHE_NAME = 'pg-designer-pwa-v3-20260625-new-logo';
 const ASSETS = [
   './',
   './index.html',
