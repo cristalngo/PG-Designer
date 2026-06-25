@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pg-designer-pwa-v4-20260625-erase-ocr-image-db';
+const CACHE_NAME = 'pg-designer-pwa-v19-20260625-material-and-weight-input';
 const ASSETS = [
   './',
   './index.html',

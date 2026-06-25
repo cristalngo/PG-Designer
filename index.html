@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="PG Designer">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0f766e">
+  <meta name="theme-color" content="#faf6ef">
   <title>PG Designer</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./favicon.ico" sizes="any">
@@ -66,6 +66,7 @@
       </div>
       <div id="selectedRef" class="selected-ref" hidden></div>
       <div id="results" class="results"></div>
+      <button id="searchFloatBtn" class="search-float" type="button" hidden>Đổi DB</button>
       <details class="import-box">
         <summary>Import sync JSON từ PG Manager</summary>
         <label class="file-button wide">
@@ -81,9 +82,18 @@
         <h2>Checklist gửi xưởng</h2>
         <button id="rebuildBtn" class="ghost" type="button">Gợi ý lại</button>
       </div>
+      <div class="thickness-control">
+        <span>Thân nhẫn</span>
+        <input id="bandWidthInput" type="text" inputmode="decimal" value="1.4" aria-label="Thân nhẫn mm">
+        <div class="stepper" aria-label="Chỉnh thân nhẫn">
+          <button id="bandWidthUpBtn" type="button" aria-label="Tăng thân nhẫn">▲</button>
+          <button id="bandWidthDownBtn" type="button" aria-label="Giảm thân nhẫn">▼</button>
+        </div>
+        <strong>mm</strong>
+      </div>
       <div id="suggestions" class="suggestions"></div>
       <div class="custom-row">
-        <input id="customInput" placeholder="Thêm dòng riêng, vd: thân nhẫn 1.4mm">
+        <input id="customInput" placeholder="Thêm dòng riêng, vd: chấu thấp, lòng trơn">
         <button id="addCustomBtn" type="button">+</button>
       </div>
     </section>
