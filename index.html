@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="PG Designer">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f766e">
+  <title>PG Designer</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <img class="logo" src="./icons/icon-192.png" alt="">
+      <div>
+        <p>Petite Gem</p>
+        <h1>PG Designer</h1>
+      </div>
+    </header>
+
+    <section class="canvas-card">
+      <div class="image-stage">
+        <canvas id="previewCanvas" width="900" height="900"></canvas>
+        <div id="emptyState" class="empty-state">
+          <strong>Chọn ảnh sản phẩm</strong>
+          <span>App sẽ dán yêu cầu thiết kế lên ảnh này.</span>
+        </div>
+      </div>
+      <div class="actions">
+        <label class="file-button">
+          <input id="photoInput" type="file" accept="image/*">
+          Chọn ảnh
+        </label>
+        <button id="renderBtn" type="button">Tạo ảnh</button>
+        <button id="shareBtn" class="secondary" type="button" disabled>Share</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">
+        <h2>Yêu cầu khách</h2>
+        <button id="clearBtn" class="ghost" type="button">Clear</button>
+      </div>
+      <textarea id="requestInput" rows="4" placeholder="vd: Nhẫn lily, đá ruby, tay 17.5, vàng vàng 10k"></textarea>
+      <div class="segmented" role="group" aria-label="Vị trí chữ">
+        <button class="active" type="button" data-placement="top">Trên</button>
+        <button type="button" data-placement="center">Giữa</button>
+        <button type="button" data-placement="bottom">Dưới</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">
+        <h2>Tham khảo DB</h2>
+        <span id="dbStatus">Đang tải DB...</span>
+      </div>
+      <div class="search-row">
+        <input id="searchInput" autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Search: nhẫn ruby, lily, oval...">
+        <button id="searchBtn" type="button">Search</button>
+      </div>
+      <div id="selectedRef" class="selected-ref" hidden></div>
+      <div id="results" class="results"></div>
+      <details class="import-box">
+        <summary>Import sync JSON từ PG Manager</summary>
+        <label class="file-button wide">
+          <input id="syncInput" type="file" accept="application/json,.json">
+          Import JSON
+        </label>
+        <p>Hỗ trợ cả ProductDatabase.json và mobile sync package có products/orders/thuChiRows.</p>
+      </details>
+    </section>
+
+    <section class="card">
+      <div class="card-title">
+        <h2>Checklist gửi xưởng</h2>
+        <button id="rebuildBtn" class="ghost" type="button">Gợi ý lại</button>
+      </div>
+      <div id="suggestions" class="suggestions"></div>
+      <div class="custom-row">
+        <input id="customInput" placeholder="Thêm dòng riêng, vd: thân nhẫn 1.4mm">
+        <button id="addCustomBtn" type="button">+</button>
+      </div>
+    </section>
+
+    <section class="card help">
+      <h2>Cách dùng nhanh</h2>
+      <p>Upload thư mục này lên GitHub Pages. Trên iPhone mở link, bấm Share → Add to Home Screen. Sau lần mở đầu, app cache để dùng nhanh hơn.</p>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
